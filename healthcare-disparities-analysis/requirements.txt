@@ -1,0 +1,37 @@
+# Healthcare Disparities Analysis - R Requirements
+
+# Data Processing & Manipulation
+tidyverse==1.3.2
+tidyr==1.3.0
+dplyr==1.1.2
+ggplot2==3.4.2
+
+# Machine Learning & Modeling
+tidymodels==1.1.0
+rpart==4.1.19
+parsnip==1.0.4
+recipes==1.0.6
+yardstick==1.2.0
+
+# Visualization & Reporting
+plotly==4.10.1
+gridExtra==2.3
+cowplot==1.1.1
+
+# Interactive Dashboard
+shiny==1.7.4
+shinydashboard==0.7.2
+shinyWidgets==0.8.0
+
+# Statistical Analysis
+stats (base R)
+broom==1.0.4
+
+# Data I/O
+readr==2.1.4
+readxl==1.4.2
+
+# Utilities
+stringr==1.5.0
+forcats==1.0.0
+lubridate==1.9.2

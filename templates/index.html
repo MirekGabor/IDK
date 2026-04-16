@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Guessing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #87CEEB 0%, #87CEEB 100%);
+            transition: background 0.5s ease;
+        }
+
+        body.minecraft-mode {
+            background: linear-gradient(135deg, #2d5016 0%, #3d6b1f 100%);
+        }
+
+        body.cry-mode {
+            background: linear-gradient(135deg, #8B0000 0%, #660000 100%);
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            transition: all 0.5s ease;
+        }
+
+        body.minecraft-mode .container {
+            background: #2d5016;
+            color: #FFFF00;
+        }
+
+        body.cry-mode .container {
+            background: #8B0000;
+            color: #FFFFFF;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        body.minecraft-mode h1,
+        body.cry-mode h1 {
+            color: #FFFF00;
+        }
+
+        .guesses-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        body.minecraft-mode .guesses-info {
+            background: #1a3d0a;
+            color: #FFFF00;
+        }
+
+        body.cry-mode .guesses-info {
+            background: #660000;
+            color: #FFFFFF;
+        }
+
+        .feedback {
+            min-height: 50px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #FF6B6B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body.minecraft-mode .feedback {
+            color: #FFFF00;
+        }
+
+        body.cry-mode .feedback {
+            color: #FFFFFF;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #2196F3;
+        }
+
+        input[type="number"]:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .guess-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 40px;
+        }
+
+        .guess-btn:hover {
+            background: #45a049;
+        }
+
+        .guess-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .reset-btn {
+            background: #2196F3;
+            color: white;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .reset-btn.show {
+            display: inline-block;
+        }
+
+        .reset-btn:hover {
+            background: #0b7dda;
+        }
+
+        .error {
+            color: #FF6B6B;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .pixelated {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guess the Number (1-50)</h1>
+
+        <div class="guesses-info">
+            Guesses remaining: <span id="guesses">5</span>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="input-group">
+            <input type="number" id="guessInput" min="1" max="50" placeholder="Enter your guess">
+            <button class="guess-btn" id="guessBtn" onclick="makeGuess()">Guess</button>
+        </div>
+
+        <button class="reset-btn" id="resetBtn" onclick="resetGame()">Play Again</button>
+
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        const guessInput = document.getElementById('guessInput');
+        const guessBtn = document.getElementById('guessBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const feedbackDiv = document.getElementById('feedback');
+        const guessesSpan = document.getElementById('guesses');
+        const errorDiv = document.getElementById('error');
+        const body = document.body;
+
+        // Initialize audio context
+        let audioContext = null;
+
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Play crying sound effect
+        function playCryingSound() {
+            initAudioContext();
+            const ctx = audioContext;
+            const now = ctx.currentTime;
+
+            // Create oscillators for the crying sound (sad descending pitch)
+            for (let i = 0; i < 3; i++) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                // Start high pitch and descend (like crying)
+                const startFreq = 400 - i * 50;
+                const endFreq = 200 - i * 50;
+
+                osc.frequency.setValueAtTime(startFreq, now + i * 0.2);
+                osc.frequency.exponentialRampToValueAtTime(endFreq, now + i * 0.2 + 0.8);
+
+                // Fade out
+                gain.gain.setValueAtTime(0.3, now + i * 0.2);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.2 + 0.8);
+
+                osc.start(now + i * 0.2);
+                osc.stop(now + i * 0.2 + 0.8);
+            }
+
+            // Add a low pitched sob sound
+            const sonicOsc = ctx.createOscillator();
+            const sonicGain = ctx.createGain();
+            sonicOsc.type = 'sine';
+            sonicOsc.connect(sonicGain);
+            sonicGain.connect(ctx.destination);
+
+            sonicOsc.frequency.setValueAtTime(150, now + 0.7);
+            sonicOsc.frequency.exponentialRampToValueAtTime(80, now + 1.5);
+            sonicGain.gain.setValueAtTime(0.25, now + 0.7);
+            sonicGain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+
+            sonicOsc.start(now + 0.7);
+            sonicOsc.stop(now + 1.5);
+        }
+
+        guessInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') makeGuess();
+        });
+
+        async function makeGuess() {
+            const guess = guessInput.value.trim();
+            errorDiv.textContent = '';
+
+            if (!guess) {
+                errorDiv.textContent = 'Please enter a number!';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/guess', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ guess: guess })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    errorDiv.textContent = data.error;
+                    return;
+                }
+
+                guessesSpan.textContent = data.guesses_left;
+                feedbackDiv.textContent = data.feedback;
+
+                if (data.won) {
+                    body.classList.remove('cry-mode');
+                    body.classList.add('minecraft-mode');
+                    guessInput.disabled = true;
+                    guessBtn.disabled = true;
+                    resetBtn.classList.add('show');
+                } else if (data.lost) {
+                    body.classList.remove('minecraft-mode');
+                    body.classList.add('cry-mode');
+                    guessInput.disabled = true;
+                    guessBtn.disabled = true;
+                    resetBtn.classList.add('show');
+                    playCryingSound(); // Play crying sound on loss
+                }
+
+                guessInput.value = '';
+                if (!data.game_over) guessInput.focus();
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+            }
+        }
+
+        async function resetGame() {
+            try {
+                await fetch('/api/reset', { method: 'POST' });
+
+                body.classList.remove('minecraft-mode', 'cry-mode');
+                guessInput.disabled = false;
+                guessBtn.disabled = false;
+                resetBtn.classList.remove('show');
+                feedbackDiv.textContent = '';
+                guessesSpan.textContent = '5';
+                errorDiv.textContent = '';
+                guessInput.value = '';
+                guessInput.focus();
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+            }
+        }
+
+        // Focus input on load
+        guessInput.focus();
+    </script>
+</body>
+</html>

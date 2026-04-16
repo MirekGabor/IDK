@@ -1,0 +1,49 @@
+# Data files (for privacy/size)
+*.csv
+*.xlsx
+*.xls
+data/raw_data/
+data/*.csv
+
+# Large files
+*.zip
+*.tar.gz
+*.pptx
+*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.env
+venv/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+.Renv
+renv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Results (can regenerate)
+results/
+output/
+tmp/
+
+# Temporary files
+*.tmp
+*.temp
